@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Redirect, useRouter } from 'expo-router';
-import LoadingScreen from '@/presentation/screens/loadingscreen';
+import { LoadingScreen } from '@/presentation/screens/loadingScreen';
 import { SignUpScreen } from '@/presentation/screens/signupScreen';
-import { missingSupabaseConfigMessageDevelopment } from '@/config/env';
+import { missingSupabaseConfigMessageProduction } from '@/config/env';
+import { useSession } from '@/presentation/state/sessionProvider';
 
 /** Route for `/signup`. Shows a confirm-email notice when Supabase does not return a session. */
 export default function SignUpPage() {
   const router = useRouter();
-  const { ready, session, configured, signUp } = null as any;
+  const { ready, session, configured, signUp } = useSession();
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -22,7 +23,7 @@ export default function SignUpPage() {
 
   return (
     <SignUpScreen
-      error={configured ? error : missingSupabaseConfigMessageDevelopment}
+      error={configured ? error : missingSupabaseConfigMessageProduction}
       notice={notice}
       submitting={submitting}
       disabled={!configured}
@@ -38,7 +39,7 @@ export default function SignUpPage() {
         }
         // No session yet: stay here and tell the user to confirm, then log in.
         if (result.needsConfirmation) {
-          setNotice('Confirm your email, then log in.');
+          setNotice('Go to your email and click on Confirm your email, then log in.');
         }
       }}
       onNavigateLogin={() => router.push('/login')}

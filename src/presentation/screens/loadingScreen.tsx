@@ -1,23 +1,21 @@
-import { Colors } from '@/theme/colors';
-import { Color } from 'expo-router';
+
+import React from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-
-/**
- * LoadingScreen component - shows a spinner while the saved session is read
- */
-
+import { Colors } from '@/theme/colors';
+/** Full-screen spinner used while the saved session is being read. */
 interface LoadingScreenProps {
-    message?: string | null;
+  message?: string | null;
 }
+export const LoadingScreen = ({ message }: LoadingScreenProps) => {
+  return (
+    <View style={styles.container}>
+      <ActivityIndicator size="large" color="#10B981" style={styles.spinner} />
+      <Text style={styles.subtext}>{message || "You're almost done!\nWe're creating your profile."}</Text>
+    </View>
+  );
+};
 
-export default function LoadingScreen({ message }: LoadingScreenProps) {
-    return (
-        <View style={styles.container}>
-            <ActivityIndicator size="large" color={Colors.primary} style={styles.spinner}/>
-            <Text style={styles.subtext}>{message || 'Loading saved details...'}</Text>
-        </View>
-    );
-}
+
 
 const styles = StyleSheet.create({
     container: {

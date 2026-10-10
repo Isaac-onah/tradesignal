@@ -1,10 +1,15 @@
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { Colors } from '../theme/colors'; // Adjust path as needed
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { SessionProvider } from "@/presentation/state/sessionProvider";
+import { Colors } from "../theme/colors";
 
+/**
+ * App shell. SessionProvider must wrap every screen so login, signals,
+ * and profile share one session. Each Stack.Screen is a file in this folder.
+ */
 export default function RootLayout() {
   return (
-    <>
+    <SessionProvider>
       <StatusBar style="light" />
       <Stack
         screenOptions={{
@@ -19,6 +24,6 @@ export default function RootLayout() {
         <Stack.Screen name="signals" />
         <Stack.Screen name="profile" />
       </Stack>
-    </>
+    </SessionProvider>
   );
 }

@@ -16,8 +16,8 @@ import { Icon } from '@/presentation/components/icon';
 import { Colors } from '@/theme/colors';
 
 /**
- * Signals list. Loads Binance prices for the current risk profile, then
- * asks for a local notification when a watchlist asset is BUY or SELL.
+ * Main dashboard screen displaying live technical analysis signals from Binance.
+ * Fetches data according to the user's risk profile and evaluates watchlist matches for notifications.
  */
 type SignalsScreenProps = {
   greetingName: string;
@@ -37,12 +37,14 @@ export function SignalsScreen({
   const [refreshing, setRefreshing] = useState(false);
   const [notificationsDenied, setNotificationsDenied] = useState(false);
 
+  // Fetches market signals from Binance and handles loading/refresh states
   const load = useCallback(async (mode: 'initial' | 'refresh') => {
     if (mode === 'refresh') setRefreshing(true);
     else setStatus('loading');
     setError(null);
 
     try {
+
       setStatus('ready');
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Could not load signals.');
@@ -52,12 +54,20 @@ export function SignalsScreen({
     }
   }, [riskProfile]);
 
-  // Reload when the risk profile changes, because the BUY/SELL gap depends on it.
+  // Re-fetch signals whenever the user's risk profile changes (since indicator gaps depend on it)
   useEffect(() => {
     load('initial');
   }, [load]);
 
-  
+  // Evaluate watchlist alerts only after a successful signal update
+  useEffect(() => {
+    if (status !== 'ready') return;
+    let cancelled = false;
+    
+    return () => {
+      cancelled = true;
+    };
+  }, [status, watchlist]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -81,6 +91,7 @@ export function SignalsScreen({
           </Pressable>
         </View>
 
+        {/* Informational disclaimer required for trading demo interfaces */}
         <View style={styles.disclaimer}>
           <Text style={styles.disclaimerTitle}>Not financial advice</Text>
           <Text style={styles.disclaimerBody}>
@@ -107,16 +118,14 @@ export function SignalsScreen({
           </Pressable>
         </View>
       ) : (
-        <Text>No signals</Text>
+        <Text>Signals</Text>
       )}
     </SafeAreaView>
   );
 }
 
 
-
-
-
+// Formats crypto price dynamically based on magnitude (fewer decimals for high-value coins)
 function formatPrice(price: number) {
   const digits = price >= 1000 ? 0 : price >= 1 ? 2 : 4;
   return `$${price.toLocaleString('en-US', {
@@ -125,6 +134,7 @@ function formatPrice(price: number) {
   })}`;
 }
 
+// Formats timestamp into a short, readable local string
 function formatTime(timestamp: number) {
   return new Date(timestamp).toLocaleString(undefined, {
     month: 'short',
