@@ -1,0 +1,26 @@
+{
+  "cli": {
+    "version": ">= 24.12.1",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_BINANCE_ENDPOINT": "https://api.binance.com",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://kgeettzsmwilnkmgaxtw.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtnZWV0dHpzbXdpbG5rbWdheHR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2MDYwNjYsImV4cCI6MjEwNzE4MjA2Nn0.Ta-3iYsgBIJYMKxWOh7MLO7RR8pRmUU7l4R3PUdCtMw"  
+      }
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

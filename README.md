@@ -1,58 +1,88 @@
-# Welcome to your Expo app 👋
+# TradeSignal
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+TradeSignal is an Expo app that signs you in with Supabase, loads crypto prices from Binance, and shows a simple moving-average signal for each pair. If a watchlist pair is a buy or a sell, the app schedules a local notification.
 
-## Get started
+## What you need
 
-1. Install dependencies
+- Node.js 20.19 or newer
+- npm
+- For the iOS simulator: macOS with Xcode **26.4 or newer**, plus the iOS Simulator runtime
+- For a physical iPhone: the same Xcode version and a free Apple ID is enough for a local development build
+- A [Supabase](https://supabase.com) project with email sign-up enabled
 
-   ```bash
-   npm install
-   ```
+Xcode 26.3 fails while compiling `expo-modules-jsi`. Upgrade Xcode before `npm run ios`. Expo Go can open the screens, but local notifications are not fully supported there, so use a development build when you want to check alerts.
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## 1. Install dependencies
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 2. Add environment variables
 
-### Other setup steps
+Create a `.env` file in the project root. Expo only reads variables that start with `EXPO_PUBLIC_`.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+EXPO_PUBLIC_BINANCE_ENDPOINT=https://api.binance.com
+```
 
-## Learn more
+Use the project URL and the **anon** key from the Supabase dashboard. Do not put the service-role key in this file. The Binance line is optional; the app uses `https://api.binance.com` when it is missing.
 
-To learn more about developing your project with Expo, look at the following resources:
+Restart Metro after changing `.env`. The file is gitignored.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+In Supabase, open Authentication and allow email sign-ups. If “Confirm email” is on, open the confirmation message before logging in.
 
-## Join the community
+## 3. Run the app
 
-Join our community of developers creating universal apps.
+### iOS simulator (use this to test notifications)
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-# tradesignal
-# tradesignal
+```bash
+npm run ios
+```
+
+The first run generates the `ios/` project, compiles it, installs TradeSignal on a simulator, and starts Metro. Later JavaScript changes reload without another native build.
+
+### Android emulator or device
+
+Start an emulator, or plug in a device with USB debugging on, then:
+
+```bash
+npm run android
+```
+
+### Web or Expo Go
+
+```bash
+npm start
+```
+
+Then press `w` for web, or scan the QR code with Expo Go. Web and Expo Go are fine for login and the signal list. Notifications only run in the iOS or Android development build from the commands above.
+
+## 4. Try a notification
+
+1. Sign up or log in.
+2. Allow notifications when the simulator or device asks.
+3. Open the signals screen. Bitcoin and Ethereum start on the watchlist.
+
+A banner appears about one second later when one of those pairs is **BUY** or **SELL**. A **NEUTRAL** reading does not notify. The same signal is not sent again. If permission was denied, the screen says notifications are off.
+
+Change the watchlist from the profile screen. The feed always loads Bitcoin, Ethereum, BNB, Solana, and XRP.
+
+## When something fails
+
+**Login says the app cannot connect.** `.env` is missing, the names are wrong, or Metro was not restarted after you saved the file.
+
+**`npm run ios` stops in `RuntimeScheduler.h`.** The installed Xcode is older than 26.4. Install a newer Xcode from the Mac App Store or [Apple’s developer downloads](https://developer.apple.com/download/), then run `sudo xcode-select -s /Applications/Xcode.app` and `npm run ios` again.
+
+**Expo Go warns about `expo-notifications`.** That is expected. Quit Expo Go and use `npm run ios` or `npm run android`.
+
+**The native project looks stale after an `app.json` or native-package change.** Generate it again, then rebuild:
+
+```bash
+npx expo prebuild --clean
+npm run ios
+```
+
+`ios/` and `android/` are generated. Do not edit them by hand.

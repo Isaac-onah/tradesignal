@@ -9,7 +9,9 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { fetchSignals } from '@/data/market/binance';
 import { notifyWatchlistMatches } from '@/data/notifications/watchlistNotifications';
+import type { MarketSignal, SignalSide } from '@/domain/signals/sinpleMovingAverage';
 import type { RiskProfile } from '@/domain/profile';
 import { Avatar } from '@/presentation/components/avatar';
 import { Icon } from '@/presentation/components/icon';
@@ -32,7 +34,8 @@ export function SignalsScreen({
   watchlist,
   onOpenProfile,
 }: SignalsScreenProps) {
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+      const [signals, setSignals] = useState<MarketSignal[]>([]);
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading'); 
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [notificationsDenied, setNotificationsDenied] = useState(false);
@@ -44,7 +47,8 @@ export function SignalsScreen({
     setError(null);
 
     try {
-
+      const next = await fetchSignals(riskProfile);
+      setSignals(next);
       setStatus('ready');
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Could not load signals.');
@@ -63,11 +67,13 @@ export function SignalsScreen({
   useEffect(() => {
     if (status !== 'ready') return;
     let cancelled = false;
-    
+    notifyWatchlistMatches(signals, watchlist).then((result) => {
+      if (!cancelled) setNotificationsDenied(result === 'denied');
+    });
     return () => {
       cancelled = true;
     };
-  }, [status, watchlist]);
+  }, [signals, status, watchlist]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -118,12 +124,63 @@ export function SignalsScreen({
           </Pressable>
         </View>
       ) : (
-        <Text>Signals</Text>
+        <FlatList
+          data={signals}
+          keyExtractor={(item) => item.symbol}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => load('refresh')}
+              tintColor={Colors.white}
+            />
+          }
+          renderItem={({ item }) => (
+            <SignalCard signal={item} watched={watchlist.includes(item.symbol)} />
+          )}
+        />
       )}
     </SafeAreaView>
   );
 }
 
+// Individual card component for rendering a single market signal asset
+function SignalCard({ signal, watched }: { signal: MarketSignal; watched: boolean }) {
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardTop}>
+        <View style={styles.cardTitle}>
+          <Text style={styles.symbol}>{signal.assetName}</Text>
+          <Text style={styles.pair}>{signal.symbol}</Text>
+        </View>
+        <View style={[styles.side, sideStyle(signal.side)]}>
+          <Text style={[styles.sideText, sideTextStyle(signal.side)]}>{signal.side}</Text>
+        </View>
+      </View>
+      <Text style={styles.price}>{formatPrice(signal.price)}</Text>
+      <Text style={styles.rationale}>{signal.rationale}</Text>
+      <View style={styles.cardFooter}>
+        <Text style={styles.time}>{formatTime(signal.timestamp)}</Text>
+        {watched ? <Text style={styles.watched}>On watchlist</Text> : null}
+      </View>
+    </View>
+  );
+}
+
+// Helper to determine background color based on trade action (BUY/SELL/NEUTRAL)
+function sideStyle(side: SignalSide) {
+  if (side === 'BUY') return styles.buy;
+  if (side === 'SELL') return styles.sell;
+  return styles.neutral;
+}
+
+// Helper to determine text color for the trade action badge
+function sideTextStyle(side: SignalSide) {
+  if (side === 'BUY') return styles.buyText;
+  if (side === 'SELL') return styles.sellText;
+  return styles.neutralText;
+}
 
 // Formats crypto price dynamically based on magnitude (fewer decimals for high-value coins)
 function formatPrice(price: number) {

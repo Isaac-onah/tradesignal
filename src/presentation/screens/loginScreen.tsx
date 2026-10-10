@@ -26,7 +26,6 @@ type LoginData = {
 type LoginScreenProps = {
   onLogin: (data: LoginData) => void;
   onNavigateSignUp: () => void;
-  onForgotPassword?: () => void;
   error?: string | null;
   submitting?: boolean;
   disabled?: boolean;
@@ -35,7 +34,6 @@ type LoginScreenProps = {
 export function LoginScreen({
   onLogin,
   onNavigateSignUp,
-  onForgotPassword,
   error,
   submitting = false,
   disabled = false,
@@ -127,9 +125,7 @@ export function LoginScreen({
                 <Text style={styles.rememberText}>Remember me</Text>
               </Pressable>
 
-              <Pressable onPress={onForgotPassword} hitSlop={4}>
-                <Text style={styles.forgotLink}>Forgot Password ?</Text>
-              </Pressable>
+          
             </View>
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -260,11 +256,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontSize: 14,
   },
-  forgotLink: {
-    color: Colors.primary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
+
   errorText: {
     color: Colors.danger,
     fontSize: 14,

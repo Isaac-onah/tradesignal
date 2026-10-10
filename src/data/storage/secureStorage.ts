@@ -38,6 +38,11 @@ export const secureStoreAdapter = {
   // Reads and reconstructs the session token from local storage or keychain chunks
   async getItem(key: string): Promise<string | null> {
 
+    // Fall back to localStorage when testing on Web
+    if (Platform.OS === 'web') {
+      return browserStorage()?.getItem(key) ?? null;
+    }
+
     // Check if a chunk count tracker (`${key}.n`) exists
     const countRaw = await SecureStore.getItemAsync(`${key}.n`);
     
